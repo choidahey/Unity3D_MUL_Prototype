@@ -40,7 +40,6 @@ public class MainCamera_Action : MonoBehaviour
     }
 
 
-    // Update is called once per frame
     //Update와 달리 프레임에 영향받지 않음 == 버벅거리는 현상 보정
     void FixedUpdate()
     {
@@ -53,7 +52,7 @@ public class MainCamera_Action : MonoBehaviour
         quat.y /= quat.y;
         quat.z /= quat.z;
 
-        quat.y = 10.0f;
+        quat.y = 0.0f;
 
         float angleY = 2.0f * Mathf.Rad2Deg * Mathf.Atan(quat.y);
         angleY = Mathf.Clamp(angleY, min, max);
