@@ -1,232 +1,179 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 
 //캐릭터 애니메이터 컨트롤러 코드
-public class Play2 : MonoBehaviour
+public class CharacterMainController : MonoBehaviour
 {
-    private enum ControlMode
+    /***********************************************************************
+    *                               Definitions
+    ***********************************************************************/
+    #region .
+    public enum CameraType { FpCamera, TpCamera };
+
+    [Serializable]
+    public class Components
     {
-        /// <summary>
-        /// Up moves the character forward, left and right turn the character gradually and down moves the character backwards
-        /// </summary>
-        Tank,
-        /// <summary>
-        /// Character freely moves in the chosen direction from the perspective of the camera
-        /// </summary>
-        Direct
+        public Camera tpCamera;
+        public Camera fpCamera;
+
+        [HideInInspector] public Transform tpRig;
+        [HideInInspector] public Transform fpRoot;
+        [HideInInspector] public Transform fpRig;
+
+        [HideInInspector] public GameObject tpCamObject;
+        [HideInInspector] public GameObject fpCamObject;
+
+        [HideInInspector] public Rigidbody rBody;
+        [HideInInspector] public Animator anim;
+    }
+    [Serializable]
+    public class KeyOption
+    {
+        public KeyCode moveForward = KeyCode.W;
+        public KeyCode moveBackward = KeyCode.S;
+        public KeyCode moveLeft = KeyCode.A;
+        public KeyCode moveRight = KeyCode.D;
+        public KeyCode run = KeyCode.LeftShift;
+        public KeyCode jump = KeyCode.Space;
+        public KeyCode switchCamera = KeyCode.Tab;
+        public KeyCode showCursor = KeyCode.LeftAlt;
+    }
+    [Serializable]
+    public class MovementOption
+    {
+        [Range(1f, 10f), Tooltip("이동속도")]
+        public float speed = 3f;
+        [Range(1f, 3f), Tooltip("달리기 이동속도 증가 계수")]
+        public float runningCoef = 1.5f;
+        [Range(1f, 10f), Tooltip("점프 강도")]
+        public float jumpForce = 5.5f;
+    }
+    [Serializable]
+    public class CameraOption
+    {
+        [Tooltip("게임 시작 시 카메라")]
+        public CameraType initialCamera;
+        [Range(1f, 10f), Tooltip("카메라 상하좌우 회전 속도")]
+        public float rotationSpeed = 2f;
+        [Range(-90f, 0f), Tooltip("올려다보기 제한 각도")]
+        public float lookUpDegree = -60f;
+        [Range(0f, 75f), Tooltip("내려다보기 제한 각도")]
+        public float lookDownDegree = 75f;
+    }
+    [Serializable]
+    public class AnimatorOption
+    {
+        public string paramMoveX = "Move X";
+        public string paramMoveY = "Move Y";
+        public string paramMoveZ = "Move Z";
+    }
+    [Serializable]
+    public class CharacterState
+    {
+        public bool isCurrentFp;
+        public bool isMoving;
+        public bool isRunning;
+        public bool isGrounded;
     }
 
-    [SerializeField] private float m_moveSpeed = 20;
-    [SerializeField] private float m_turnSpeed = 200;
-    [SerializeField] private float m_jumpForce = 2;
+    #endregion
+    /***********************************************************************
+    *                               Fields, Properties
+    ***********************************************************************/
+    #region .
+    public Components Com => _components;
+    public KeyOption Key => _keyOption;
+    public MovementOption MoveOption => _movementOption;
+    public CameraOption CamOption => _cameraOption;
+    public AnimatorOption AnimOption => _animatorOption;
+    public CharacterState State => _state;
 
-    [SerializeField] private Animator m_animator = null;
-    [SerializeField] private Rigidbody m_rigidBody = null;
+    [SerializeField] private Components _components = new Components();
+    [Space]
+    [SerializeField] private KeyOption _keyOption = new KeyOption();
+    [Space]
+    [SerializeField] private MovementOption _movementOption = new MovementOption();
+    [Space]
+    [SerializeField] private CameraOption _cameraOption = new CameraOption();
+    [Space]
+    [SerializeField] private AnimatorOption _animatorOption = new AnimatorOption();
+    [Space]
+    [SerializeField] private CharacterState _state = new CharacterState();
 
-    [SerializeField] private ControlMode m_controlMode = ControlMode.Direct;
+    private Vector3 _moveDir;
+    private Vector3 _worldMove;
+    private Vector2 _rotation;
 
-    private float m_currentV = 0;
-    private float m_currentH = 0;
+    #endregion
 
-    private readonly float m_interpolation = 10;
-    private readonly float m_walkScale = 0.33f;
-    private readonly float m_backwardsWalkScale = 0.16f;
-    private readonly float m_backwardRunScale = 0.66f;
-
-    private bool m_wasGrounded;
-    private Vector3 m_currentDirection = Vector3.zero;
-
-    private float m_jumpTimeStamp = 0;
-    private float m_minJumpInterval = 0.25f;
-    private bool m_jumpInput = false;
-
-    private bool m_isGrounded;
-
-    private List<Collider> m_collisions = new List<Collider>();
-
+    /***********************************************************************
+    *                               Unity Events
+    ***********************************************************************/
+    #region .
     private void Awake()
     {
-        if (!m_animator) { gameObject.GetComponent<Animator>(); }
-        if (!m_rigidBody) { gameObject.GetComponent<Animator>(); }
+        InitComponents();
+        InitSettings();
     }
 
-    private void OnCollisionEnter(Collision collision)
+    #endregion
+    /***********************************************************************
+    *                               Init Methods
+    ***********************************************************************/
+    #region .
+    private void InitComponents()
     {
-        ContactPoint[] contactPoints = collision.contacts;
-        for (int i = 0; i < contactPoints.Length; i++)
-        {
-            if (Vector3.Dot(contactPoints[i].normal, Vector3.up) > 0.5f)
-            {
-                if (!m_collisions.Contains(collision.collider))
-                {
-                    m_collisions.Add(collision.collider);
-                }
-                m_isGrounded = true;
-            }
-        }
+        LogNotInitializedComponentError(Com.tpCamera, "TP Camera");
+        LogNotInitializedComponentError(Com.fpCamera, "FP Camera");
+        TryGetComponent(out Com.rBody);
+        Com.anim = GetComponentInChildren<Animator>();
 
-        if (collision.collider.gameObject.CompareTag("block"))
-        {
-            Debug.Log("벽에 충돌");
-        }
-
+        Com.tpCamObject = Com.tpCamera.gameObject;
+        Com.tpRig = Com.tpCamera.transform.parent;
+        Com.fpCamObject = Com.fpCamera.gameObject;
+        Com.fpRig = Com.fpCamera.transform.parent;
+        Com.fpRoot = Com.fpRig.parent;
     }
 
-    private void OnCollisionStay(Collision collision)
+    private void InitSettings()
     {
-        ContactPoint[] contactPoints = collision.contacts;
-        bool validSurfaceNormal = false;
-        for (int i = 0; i < contactPoints.Length; i++)
+        // Rigidbody
+        if (Com.rBody)
         {
-            if (Vector3.Dot(contactPoints[i].normal, Vector3.up) > 0.5f)
-            {
-                validSurfaceNormal = true; break;
-            }
+            // 회전은 트랜스폼을 통해 직접 제어할 것이기 때문에 리지드바디 회전은 제한
+            Com.rBody.constraints = RigidbodyConstraints.FreezeRotation;
         }
 
-        if (validSurfaceNormal)
+        // Camera
+        var allCams = FindObjectsOfType<Camera>();
+        foreach (var cam in allCams)
         {
-            m_isGrounded = true;
-            if (!m_collisions.Contains(collision.collider))
-            {
-                m_collisions.Add(collision.collider);
-            }
+            cam.gameObject.SetActive(false);
         }
-        else
-        {
-            if (m_collisions.Contains(collision.collider))
-            {
-                m_collisions.Remove(collision.collider);
-            }
-            if (m_collisions.Count == 0) { m_isGrounded = false; }
-        }
+        // 설정한 카메라 하나만 활성화
+        State.isCurrentFp = (CamOption.initialCamera == CameraType.FpCamera);
+        Com.fpCamObject.SetActive(State.isCurrentFp);
+        Com.tpCamObject.SetActive(!State.isCurrentFp);
     }
 
-    private void OnCollisionExit(Collision collision)
+    #endregion
+    /***********************************************************************
+    *                               Checker Methods
+    ***********************************************************************/
+    #region .
+    private void LogNotInitializedComponentError<T>(T component, string componentName) where T : Component
     {
-        if (m_collisions.Contains(collision.collider))
-        {
-            m_collisions.Remove(collision.collider);
-        }
-        if (m_collisions.Count == 0) { m_isGrounded = false; }
+        if (component == null)
+            Debug.LogError($"{componentName} 컴포넌트를 인스펙터에 넣어주세요");
     }
 
-    private void Update()
-    {
-        if (!m_jumpInput && Input.GetKey(KeyCode.Space))
-        {
-            m_jumpInput = true;
-        }
-    }
+    #endregion
+    /***********************************************************************
+    *                               Methods
+    ***********************************************************************/
+    #region .
 
-    private void FixedUpdate()
-    {
-        m_animator.SetBool("Grounded", m_isGrounded);
-
-        switch (m_controlMode)
-        {
-            case ControlMode.Direct:
-                DirectUpdate();
-                break;
-
-            case ControlMode.Tank:
-                TankUpdate();
-                break;
-
-            default:
-                Debug.LogError("Unsupported state");
-                break;
-        }
-
-        m_wasGrounded = m_isGrounded;
-        m_jumpInput = false;
-    }
-
-    private void TankUpdate()
-    {
-        float v = Input.GetAxis("Vertical");
-        float h = Input.GetAxis("Horizontal");
-
-        bool walk = Input.GetKey(KeyCode.LeftShift);
-
-        if (v < 0)
-        {
-            if (walk) { v *= m_backwardsWalkScale; }
-            else { v *= m_backwardRunScale; }
-        }
-        else if (walk)
-        {
-            v *= m_walkScale;
-        }
-
-        m_currentV = Mathf.Lerp(m_currentV, v, Time.deltaTime * m_interpolation);
-        m_currentH = Mathf.Lerp(m_currentH, h, Time.deltaTime * m_interpolation);
-
-        transform.position += transform.forward * m_currentV * m_moveSpeed * Time.deltaTime;
-        transform.Rotate(0, m_currentH * m_turnSpeed * Time.deltaTime, 0);
-
-        m_animator.SetFloat("MoveSpeed", m_currentV);
-
-        JumpingAndLanding();
-    }
-
-    private void DirectUpdate()
-    {
-        float v = Input.GetAxis("Vertical");
-        float h = Input.GetAxis("Horizontal");
-
-        Transform camera = Camera.main.transform;
-
-        if (Input.GetKey(KeyCode.LeftShift))
-        {
-            Debug.Log("걷기");
-            v *= m_walkScale;
-            h *= m_walkScale;
-        }
-        
-        m_currentV = Mathf.Lerp(m_currentV, v, Time.deltaTime * m_interpolation);
-        m_currentH = Mathf.Lerp(m_currentH, h, Time.deltaTime * m_interpolation);
-
-        Vector3 direction = camera.forward * m_currentV + camera.right * m_currentH;
-
-        float directionLength = direction.magnitude;
-        direction.y = 0;
-        direction = direction.normalized * directionLength;
-
-        if (direction != Vector3.zero)
-        {
-            Debug.Log("뛰기");
-            m_currentDirection = Vector3.Slerp(m_currentDirection, direction, Time.deltaTime * m_interpolation);
-
-            transform.rotation = Quaternion.LookRotation(m_currentDirection);
-            transform.position += m_currentDirection * m_moveSpeed * Time.deltaTime;
-
-            m_animator.SetFloat("MoveSpeed", direction.magnitude);
-        }
-
-        JumpingAndLanding();
-    }
-
-    private void JumpingAndLanding()
-    {
-        bool jumpCooldownOver = (Time.time - m_jumpTimeStamp) >= m_minJumpInterval;
-
-        if (jumpCooldownOver && m_isGrounded && m_jumpInput)
-        {
-            m_jumpTimeStamp = Time.time;
-            m_rigidBody.AddForce(Vector3.up * m_jumpForce, ForceMode.Impulse);
-        }
-
-        if (!m_wasGrounded && m_isGrounded)
-        {
-            m_animator.SetTrigger("Land");
-        }
-
-        if (!m_isGrounded && m_wasGrounded)
-        {
-            m_animator.SetTrigger("Jump");
-        }
-    }
-
+    #endregion
 }

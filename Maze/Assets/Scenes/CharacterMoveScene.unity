@@ -140,8 +140,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ff8ccdb57932994bb52e00688b9ca71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_targets:
-  - {fileID: 937242721}
+  target: {fileID: 937242721}
+  targetY: 20
+  xRotMax: 100
+  rotSpeed: 80
+  scrollSpeed: 200
+  distance: 30
+  minDistance: 10
+  maxDistance: 50
 --- !u!1 &363120971
 GameObject:
   m_ObjectHideFlags: 0
@@ -241,39 +247,6 @@ Transform:
 --- !u!4 &937242721 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4210959775029720999, guid: e11c8c9847f7b9340bd09e1baab789cd, type: 3}
-  m_PrefabInstance: {fileID: 4206498618413102657}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1130378250 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4208058662530143011, guid: e11c8c9847f7b9340bd09e1baab789cd, type: 3}
-  m_PrefabInstance: {fileID: 4206498618413102657}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1130378251
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1130378250}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 431960a55f9b1dd47808ae86eb76ed1a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_moveSpeed: 10
-  m_turnSpeed: 200
-  m_jumpForce: 2
-  m_animator: {fileID: 1130378253}
-  m_rigidBody: {fileID: 1130378255}
-  m_controlMode: 1
---- !u!95 &1130378253 stripped
-Animator:
-  m_CorrespondingSourceObject: {fileID: 4265932406749307635, guid: e11c8c9847f7b9340bd09e1baab789cd, type: 3}
-  m_PrefabInstance: {fileID: 4206498618413102657}
-  m_PrefabAsset: {fileID: 0}
---- !u!54 &1130378255 stripped
-Rigidbody:
-  m_CorrespondingSourceObject: {fileID: 4224475146924734995, guid: e11c8c9847f7b9340bd09e1baab789cd, type: 3}
   m_PrefabInstance: {fileID: 4206498618413102657}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1224380564
@@ -549,7 +522,7 @@ PrefabInstance:
       objectReference: {fileID: 9100000, guid: 8b9a677f24793ba45bdc27a1dab7745e, type: 2}
     - target: {fileID: 4830649486320159250, guid: e11c8c9847f7b9340bd09e1baab789cd, type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4830649486320159250, guid: e11c8c9847f7b9340bd09e1baab789cd, type: 3}
       propertyPath: m_moveSpeed

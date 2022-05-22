@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class CollideCheck : MonoBehaviour
 {
@@ -18,10 +19,14 @@ public class CollideCheck : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.collider.gameObject.CompareTag("block"))
+        if (collision.collider.gameObject.CompareTag("FinishBlock"))  //finish box에 도달하면 씬 변환
         {
-            Debug.Log("벽에 충돌");
-
+            ChangeScene();
         }
+    }
+    public void ChangeScene()
+    {
+        //SceneManager.LoadScene(0); //build 창 오른쪽에 있는 번호로 씬 전환
+        SceneManager.LoadScene("CharacterMoveScene");  //씬 이름으로 씬 전환
     }
 }
