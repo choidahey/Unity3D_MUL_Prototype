@@ -66,7 +66,7 @@ public class SimpleSampleCharacterControl : MonoBehaviour
             }
         }
 
-        if (collision.collider.gameObject.CompareTag("block")){ }
+        if (collision.collider.gameObject.CompareTag("block")){ } //책장 벽뚫못하게 막기
         
     }
 
