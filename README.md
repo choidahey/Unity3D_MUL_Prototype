@@ -11,10 +11,15 @@
 
 
 ⚙️ Development Enviroment
+
 ✔️ OS : Windows 11
+
 ✔️ Tool : Unity Engine 3D
+
 ✔️ Version : 2020.3.31f
+
 ✔️ IDE : Visual Studio 2019
+
 ✔️ Library : Photon PUN 2  ver.2.41, Photon Chat ver.2.17, Photon Voice 2 ver.2.50
 
 <img src="https://img.shields.io/badge/C Sharp-239120?style=flat&logo=React&logoColor=white"/><img src="https://img.shields.io/badge/Unity-FFFFFF?style=flat&logo=React&logoColor=white"/>
