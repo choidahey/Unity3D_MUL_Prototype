@@ -1,10 +1,8 @@
 # 🎈 MUL_Prototype
 A metaverse platform created with the concept of a university(Prototype)
 
-<img width="50%" src="https://user-images.githubusercontent.com/81176789/201581917-532c902e-6dcf-4cf3-900e-967213056c84.png"/>
-<img width="50%" src="https://user-images.githubusercontent.com/81176789/201581916-0c9915b7-877c-4615-88bc-e66b366d02d0.png"/>
-<img width="50%" src="https://user-images.githubusercontent.com/81176789/201581911-3eb8264b-6061-4d95-97fe-fabc9347fc79.png"/>
-<img width="50%" src="https://user-images.githubusercontent.com/81176789/201581919-6c54549e-927a-4c76-8967-f21b5c08be87.png"/>
+<img width="50%" src="https://user-images.githubusercontent.com/81176789/201918257-89b7bc2a-9c3d-4a77-9ca8-fecb42bb9b52.png"/><img width="50%" src="https://user-images.githubusercontent.com/81176789/201918677-0fcee6b3-a31e-46ee-b2a1-cb849b9aea7c.png"/>
+<img width="50%" src="https://user-images.githubusercontent.com/81176789/201581911-3eb8264b-6061-4d95-97fe-fabc9347fc79.png"/><img width="50%" src="https://user-images.githubusercontent.com/81176789/201917968-85a50207-91d0-4015-9f04-f647331a94f8.png"/>
 
 
 
